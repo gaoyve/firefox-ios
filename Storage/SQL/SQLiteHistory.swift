@@ -374,6 +374,12 @@ extension SQLiteHistory: BrowserHistory {
         return self.getFilteredSitesByVisitDateWithLimit(limit, whereURLContains: nil, includeIcon: true)
     }
 
+    class func iconHistoryColumnFactory(row: SDRow) -> Site {
+        let site = basicHistoryColumnFactory(row)
+        site.icon = iconColumnFactory(row)
+        return site
+    }
+
     private class func basicHistoryColumnFactory(row: SDRow) -> Site {
         let id = row["historyID"] as! Int
         let url = row["url"] as! String
@@ -410,12 +416,6 @@ extension SQLiteHistory: BrowserHistory {
                 return Favicon(url: iconURL, date: date, type: IconType(rawValue: iconType)!)
         }
         return nil
-    }
-
-    private class func iconHistoryColumnFactory(row: SDRow) -> Site {
-        let site = basicHistoryColumnFactory(row)
-        site.icon = iconColumnFactory(row)
-        return site
     }
 
     private func topSiteClauses() -> (String, String) {
@@ -696,6 +696,7 @@ extension SQLiteHistory: BrowserHistory {
         let allSQL = "SELECT * FROM (SELECT * FROM (\(historySQL)) UNION SELECT * FROM (\(bookmarksSQL))) ORDER BY is_bookmarked DESC, frecencies DESC"
         return (allSQL, args)
     }
+
 }
 
 extension SQLiteHistory: Favicons {
@@ -1163,3 +1164,4 @@ extension SQLiteHistory: AccountRemovalDelegate {
         return self.db.run(discard) >>> self.resetClient
     }
 }
+
