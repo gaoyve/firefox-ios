@@ -169,6 +169,10 @@ extension ActivityStreamPanel {
         homePanelDelegate?.homePanel(self, didSelectURL: url, visitType: visitType)
     }
 
+    private func presentActionMenuHandler(alert: UIAlertController) {
+        self.presentViewController(alert, animated: true, completion: nil)
+    }
+
     override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
         switch Section(indexPath.section) {
         case .History:
@@ -252,6 +256,12 @@ extension ActivityStreamPanel {
             self.topSitesManager.urlPressedHandler = { [unowned self] url in
                 self.showSiteWithURLHandler(url)
             }
+            self.topSitesManager.presentActionMenuHandler = { [unowned self] alert in
+                self.presentActionMenuHandler(alert)
+            }
+            self.topSitesManager.deleteItemHandler = { [unowned self] url in
+                self.hideURLFromTopSites(url)
+            }
             self.tableView.reloadData()
         }
     }
@@ -265,6 +275,15 @@ extension ActivityStreamPanel {
                 }
             }
             return deferMaybe(self.topSites)
+        }
+    }
+
+    private func hideURLFromTopSites(siteURL: NSURL) {
+        guard let host = siteURL.normalizedHost() else {
+            return
+        }
+        profile.history.removeHostFromTopSites(host).uponQueue(dispatch_get_main_queue()) { result in
+            guard result.isSuccess else { return }
         }
     }
 
